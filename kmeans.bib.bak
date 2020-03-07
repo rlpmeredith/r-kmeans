@@ -1,0 +1,10 @@
+% Encoding: UTF-8
+
+@WWW{Datacamp,
+  author = {Datacamp},
+  date   = {2020-03-06},
+  title  = {RDocumentation Kmeans},
+  url    = {https://www.rdocumentation.org/packages/stats/versions/3.6.2/topics/kmeans},
+}
+
+@Comment{jabref-meta: databaseType:biblatex;}
