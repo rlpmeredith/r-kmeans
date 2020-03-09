@@ -18,7 +18,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 # Introduction
 
-I this assignment I will examine the output of multiple runs of the R K Means algorithm on the Iris dataset and dicuss how Kmeans is working on this data. I will illustrate this through the use of various visualisations.I will assume the reader knows about the KMeans algorithm and not go into choice of number of clusters.
+In this assignment I will examine the output of multiple runs of the R K Means algorithm on the Iris dataset and discuss how Kmeans is working on this data. I will illustrate this through the use of various visualisations.I will assume the reader knows about the KMeans algorithm and not go into choice of number of clusters.
 
 # Initial Data Exploration
 
@@ -35,9 +35,13 @@ plot(newiris[c("Sepal.Length", "Sepal.Width")], col=kc$cluster, main = kc$tot.wi
 }
 ```
 
-It appears from a visual inspection of this inital exploration that actually there are only two different outputs. The R kmeans algorithm sometimes chooses a different colour for the clusters but there appear to only be two results one of which is optimum as it has a lower Total Withinss.
+It appears from a visual inspection of this inital exploration that actually there are only two different outputs. The R kmeans algorithm sometimes chooses a different colour for the clusters but there appear to only be two results one of which is optimum as it has a lower Total Withinss. As Arthur and Vassilvitskii mention "it is standard practice to run the k-means algorithm multiple times, and then keep only the best clustering found."[@arthur2006k]
 
-To test for this we can compare the cluster output centres and see how many variants there are. However Kmeans does not know which cluster is cluster 1 etc so first we need to compare the cluster centres in any order using all_equal ignoring row order. Running the code 1000 times shows that we never get a third set of cluster centres as an output. 
+To see if this is a behaviour of the particular implementation of KMeans in R a test with each of the algorithms provided with R Kmeans was carried out. This did not show any different results. The optimum result was chosen most of the time with the other result appearing about 20% of the time. The default algorithm in R Kmeans is Hartigan and Wong (1979) however "Lloyd" and "Forgy" are also available. [@Datacamp] 
+
+# Check Of Number Of Outputs
+
+To test the assertion that there are only two results for any of the random starting point in this data set we can compare the cluster output centres and see how many variants there are. However Kmeans does not know which cluster is cluster 1 etc so first we need to compare the cluster centres in any order using all_equal ignoring row order. Running the code 1000 times shows that we never get a third set of cluster centres as an output. 
 
 ```{r Code_Chunk_2, echo=FALSE, eval=TRUE}
 suppressWarnings(suppressMessages(library(tidyverse)))
@@ -79,9 +83,13 @@ print("Count of third set of centres is:")
 print(res3count)
 ```
 
-So it appears that depending ont he random starting points chosen by the algorithm we have just two possible answers. To see how many points end up in different clusters for these two outputs we can compare and plot the output vectors. There is a problem with this in that the cluster numbers in multiple runs of KMeans can change. Cluster 1 is not always cluster one. Looking back at the plots in the first section we can see that the 3 clusters could be described as Top Left, Bottom Left and Right in each output. 
+This confirms that regardless of the random starting points chosen by the algorithm we have just two possible outputs. A fairly well known issue with the kmeans algorithm in general is that depending on the starting points chosen the algorithm "is liable to find a local minimum solution instead of a global  one, and as such may not find the  optimal partition."  [@morissette2013k]. We can see that in this case that the Kmeans algorithm is choosing a non optimal solution just under 20% of the time.
 
-So the first task is to enure we have two vectors where the cluster numbers are consistent across the two possible outputs. The point with the max sepal width should be in the top left cluster. The point with the max sepal length should be in the right cluster. So we will run the outputs until we match two cluster vectors that agree. We will arbitrarily say we want the top left cluster to be cluster 1 and the right cluster to be cluster 3. 
+# Check Behaviour Of Individual Data Points
+
+To observe the behaviour of the data points that potentially end up in different clusters for the two possible outputs we can compare and plot the output vectors. There is a problem with this in that the cluster numbers in multiple runs of KMeans can change. Cluster 1 is not always cluster 1. Looking back at the plots in the first section we can see that the 3 clusters could be described as Top Left, Bottom Left and Right in each output. 
+
+So the first task is to enure we have two kmeans cluster vectors where the cluster numbers are consistent across the two possible outputs. The point with the max sepal width should be in the top left cluster. The point with the max sepal length should be in the right cluster. So we will run the outputs until we match two cluster vectors that agree. We will arbitrarily say we want the top left cluster to be cluster 1 and the right cluster to be cluster 3. 
 
 
 
@@ -92,7 +100,9 @@ suppressWarnings(suppressMessages(library(tidyverse)))
 newiris <- iris
 newiris$Species <- NULL
 row_max_width <- which.max(newiris$Sepal.Width)
+print("The Max Sepal Width Is In Row:")
 print(row_max_width)
+print("The Max Sepal Length Is In Row:")
 row_max_length <- which.max(newiris$Sepal.Length)
 print(row_max_length)
 kc <- kmeans(newiris, 3)
@@ -112,35 +122,34 @@ for (i in 1:100){
     }
   }
 }
-print(type1compare)
-print(type2compare)
+#print(type1compare)
+#print(type2compare)
 
 ```
-We can now compare and plot the points that have moved between the two solutions:
+We can now compare and plot the points that have moved (and secondly the ones that didn't move) between the two solutions with the pairs function that plots each of the four dimensions against the other:
 
-```{r Code_Chunk_3, echo=FALSE, eval=TRUE}
+```{r Code_Chunk_4, echo=FALSE, eval=TRUE}
 
 resultvector = type1compare$cluster != type2compare$cluster 
-print(resultvector)
-answer = newiris[resultvector,]
-notanswer = newiris[!resultvector,]
-plot(answer[c("Sepal.Length", "Sepal.Width")])
-plot(notanswer[c("Sepal.Length", "Sepal.Width")])
+moved = newiris[resultvector,]
+pairs(moved, main = "Points that changed cluster")
+
 
 
 ```
+```{r Code_Chunk_5, echo=FALSE, eval=TRUE}
+
+notmoved = newiris[!resultvector,]
+pairs(notmoved, main = "Points that didn't change cluster" )
+
+```
+
+We can see fairly readily from this visualisation that the points that didn't change cluster are fairly obviously clustered in each combination of plots. The points that move are obviously clustered in some dimensions but not others. 
 
 
-A fairly well known issue with the kmeans algorithm in general is that depending on the starting points chosen the algorithm "is liable to find a local minimum solution instead of a global  one, and as such may not find the  optimal partition."  [@morissette2013k]. So to investigate this further the starting points of the cluster will be plotted against the outcome. The default in the R Kmeans algorithm is that when the number of cluster are provided, in this case 3, that that number of random rows are taken from the initial dataset as the starting points. [@Datacamp]
+# Code Appendix
 
-Another feature of KMeans is that the initial points might be random by default but given a particular set of starting points the output is not random. We can demonstrate this by running the code say 100,000 time for the same starting points and seeing that the output is the same. The starting points can be provided as a matrix instead of specifying the number of clusters. So we can specify 3 random points in the four dimensional space and see what the results are.
-
-A test with each of the algorithms provided with R Kmeans did not show any different results. The optimum result was chosen most of the time with the other result appearing about 20% of the time. The default algorithm in R Kmeans is Hartigan and Wong (1979) however "Lloyd" and "Forgy" are also available. [@Datacamp]
-
-
-
-
-
+```{r ref.label=knitr::all_labels(), echo = T, eval = F}
+```
 ## References
-
 

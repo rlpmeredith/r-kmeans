@@ -7,4 +7,15 @@
   url    = {https://www.rdocumentation.org/packages/stats/versions/3.6.2/topics/kmeans},
 }
 
+@Article{morissette2013k,
+  author    = {Morissette, Laurence and Chartier, Sylvain},
+  title     = {The k-means clustering technique: General considerations and implementation in Mathematica},
+  number    = {1},
+  pages     = {15--24},
+  volume    = {9},
+  journal   = {Tutorials in Quantitative Methods for Psychology},
+  publisher = {Citeseer},
+  year      = {2013},
+}
+
 @Comment{jabref-meta: databaseType:biblatex;}

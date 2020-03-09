@@ -18,4 +18,11 @@
   year      = {2013},
 }
 
+@TechReport{arthur2006k,
+  author      = {Arthur, David and Vassilvitskii, Sergei},
+  institution = {Stanford},
+  title       = {k-means++: The advantages of careful seeding},
+  year        = {2006},
+}
+
 @Comment{jabref-meta: databaseType:biblatex;}
